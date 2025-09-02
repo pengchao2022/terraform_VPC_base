@@ -99,3 +99,24 @@ output "availability_zones_used" {
   description = "List of availability zones used in the deployment"
   value       = local.azs
 }
+
+# 堡垒机输出
+output "production_bastion_public_ip" {
+  description = "Public IP of production bastion host"
+  value       = var.create_bastion ? module.production_bastion[0].bastion_public_ip : null
+}
+
+output "production_bastion_ssh_command" {
+  description = "SSH command for production bastion"
+  value       = var.create_bastion ? module.production_bastion[0].bastion_ssh_command : null
+}
+
+output "development_bastion_public_ip" {
+  description = "Public IP of development bastion host"
+  value       = var.create_bastion ? module.development_bastion[0].bastion_public_ip : null
+}
+
+output "development_bastion_ssh_command" {
+  description = "SSH command for development bastion"
+  value       = var.create_bastion ? module.development_bastion[0].bastion_ssh_command : null
+}
