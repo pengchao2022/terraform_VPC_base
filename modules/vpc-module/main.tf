@@ -9,13 +9,13 @@ resource "aws_internet_gateway" "igw" {
 
 # 创建弹性 IP 用于 NAT Gateway
 resource "aws_eip" "nat" {
-  count = length(var.azs)
+  # 移除了 count，只创建一个 EIP
   domain = "vpc"
-
   tags = {
-    Name = "${var.vpc_name}-nat-eip-${count.index + 1}"
+    Name = "${var.vpc_name}-eip-single"
   }
 }
+
 
 # 创建公有子网
 resource "aws_subnet" "public" {
@@ -44,14 +44,12 @@ resource "aws_subnet" "private" {
 
 # 创建 NAT Gateway (每个可用区一个，放在公有子网)
 resource "aws_nat_gateway" "nat" {
-  count         = length(var.azs)
-  allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = aws_subnet.public[count.index].id # NAT Gateway 必须放在公有子网
-
+  # 移除了 count，只创建一个 NAT Gateway
+  allocation_id = aws_eip.nat.id # 引用上面创建的单个EIP，不需要索引了
+  subnet_id     = aws_subnet.public[0].id # 指定创建在第一个公有子网中。您可以选择任意一个公有子网，例如 aws_subnet.public[1].id
   tags = {
-    Name = "${var.vpc_name}-nat-gw-${count.index + 1}"
+    Name = "${var.vpc_name}-nat-gw-single"
   }
-
   depends_on = [aws_internet_gateway.igw]
 }
 
