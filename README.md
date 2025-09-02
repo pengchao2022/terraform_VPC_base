@@ -6,6 +6,10 @@
 <p>subnets(public and private)</p>
 <p>nat gateway</p>
 <p>route tables</p>
+<p>eip</p>
+<p>ssh_key</p>
+
+
 ...
 
 
