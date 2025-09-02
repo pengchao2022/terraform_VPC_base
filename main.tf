@@ -67,9 +67,7 @@ module "production_bastion" {
   instance_type    = var.bastion_config.instance_type
   ubuntu_ami_name  = var.bastion_config.ubuntu_ami_name
   ubuntu_ami_owner = var.bastion_config.ubuntu_ami_owner
-  key_name         = var.bastion_config.key_name
   allowed_cidr_blocks = var.bastion_config.allowed_cidr_blocks
-  enable_ssh       = var.bastion_config.enable_ssh
   volume_size      = var.bastion_config.volume_size
   volume_type      = var.bastion_config.volume_type
   hostname         = var.bastion_hostname
@@ -88,9 +86,7 @@ module "development_bastion" {
   instance_type    = var.bastion_config.instance_type
   ubuntu_ami_name  = var.bastion_config.ubuntu_ami_name
   ubuntu_ami_owner = var.bastion_config.ubuntu_ami_owner
-  key_name         = var.bastion_config.key_name
   allowed_cidr_blocks = var.bastion_config.allowed_cidr_blocks
-  enable_ssh       = var.bastion_config.enable_ssh
   volume_size      = var.bastion_config.volume_size
   volume_type      = var.bastion_config.volume_type
   hostname         = var.bastion_hostname

@@ -30,18 +30,6 @@ resource "aws_security_group" "bastion" {
   description = "Security group for Ubuntu bastion host"
   vpc_id      = var.vpc_id
 
-  # SSH 访问
-  dynamic "ingress" {
-    for_each = var.enable_ssh ? [1] : []
-    content {
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = var.allowed_cidr_blocks
-      description = "SSH access"
-    }
-  }
-
   # 出站规则 - 允许所有出站流量
   egress {
     from_port   = 0
@@ -62,7 +50,6 @@ resource "aws_security_group" "bastion" {
 resource "aws_instance" "bastion" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.instance_type
-  key_name               = var.key_name
   subnet_id              = var.public_subnet_ids[0] # 使用第一个公有子网
   vpc_security_group_ids = [aws_security_group.bastion.id]
 
