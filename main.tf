@@ -1,4 +1,3 @@
-
 # 定义可用区
 data "aws_availability_zones" "available" {
   state = "available"
@@ -55,15 +54,22 @@ module "development_vpc_resources" {
   azs             = local.azs
 }
 
+# 创建SSH密钥对
+resource "aws_key_pair" "bastion_server_key" {
+  key_name   = "basion-server-keypair"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC/h331ZWQQggV5Pp78eQ18Qi3lOytWJhuGacssp5gTCmuIzmMfIW+t0fhDjWq6uda1t7NeYTh0zu5+36vkiy5s3Gr1M764X3qGKeGFmC7qe1kyF7RtVoZ4adufBgoNxtWi9zGmSBVi3G98YLhq0Tuj0mV9FT9l1F3NBOd3YbtCSWJ3Lx3WH9hMJ7eGAsBek8hatCtlDIFMQeF/xW4WBufWYkghjJE0G/Z9q4bJewrERD4B7GlDe+GGN8wAvehKKASySWgeeIwu+w6LYR7yzi+hyCCL+jyiycJ113u0gMo/oavdlFlVUeoJhmjsL46sjpgKPr2Yb0GhEVBOCW/rBXPFq+24zx/uds1PK/HtVNanr5kQBpJ4yT57hKhKhuNXWhJwuwQpzEFkwt36RqNFC/7CpH0BiRaafHDggBSnzPsNEECHnPnfgvzfcKoxMNcbbgYwZxNFEBD2Bjd11T1iS0aIxlO7RA2IMGl0Ch03lE3ztbiafRVIw6pTy09ehi7e+NE= pengchaoma@Pengchaos-MacBook-Pro.local" # 替换为您的公钥内容
+}
+  
 # 为生产环境创建堡垒机
 module "production_bastion" {
   count   = var.create_bastion ? 1 : 0
   source  = "./modules/bastion-module"
-  key_name = aws_key_pair.basion_server_key.key_name
-  vpc_id           = aws_vpc.main["production"].id
+  
+  key_name          = aws_key_pair.bastion_server_key.key_name  # 修正资源名称
+  vpc_id           = aws_vpc.production.id  # 直接引用production VPC
   vpc_name         = "production"
-  public_subnet_ids = module.vpc_resources["production"].public_subnet_ids
-  environment      = var.environment
+  public_subnet_ids = module.production_vpc_resources.public_subnet_ids  # 修正模块引用
+  environment      = "production"  # 明确指定环境
   instance_type    = var.bastion_config.instance_type
   ubuntu_ami_name  = var.bastion_config.ubuntu_ami_name
   ubuntu_ami_owner = var.bastion_config.ubuntu_ami_owner
@@ -78,11 +84,12 @@ module "production_bastion" {
 module "development_bastion" {
   count   = var.create_bastion ? 1 : 0
   source  = "./modules/bastion-module"
-  key_name = aws_key_pair.basion_server_key.key_name
-  vpc_id           = aws_vpc.main["development"].id
+  
+  key_name          = aws_key_pair.bastion_server_key.key_name  # 修正资源名称
+  vpc_id           = aws_vpc.development.id  # 直接引用development VPC
   vpc_name         = "development"
-  public_subnet_ids = module.vpc_resources["development"].public_subnet_ids
-  environment      = var.environment
+  public_subnet_ids = module.development_vpc_resources.public_subnet_ids  # 修正模块引用
+  environment      = "development"  # 明确指定环境
   instance_type    = var.bastion_config.instance_type
   ubuntu_ami_name  = var.bastion_config.ubuntu_ami_name
   ubuntu_ami_owner = var.bastion_config.ubuntu_ami_owner
