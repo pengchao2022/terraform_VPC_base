@@ -75,23 +75,26 @@ resource "aws_route_table_association" "public" {
 }
 
 # 为每个私有子网创建单独的路由表
+# 私有路由表（单个）
 resource "aws_route_table" "private" {
-  count  = length(var.azs)
-  vpc_id = var.vpc_id
+  # 移除了 count，只创建一个路由表
+  vpc_id = aws_vpc.main.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat[count.index].id # 指向对应AZ的NAT Gateway
+    # 正确：指向单个的NAT Gateway对象（不需要索引）
+    nat_gateway_id = aws_nat_gateway.nat.id
   }
-
   tags = {
-    Name = "${var.vpc_name}-private-rt-${var.azs[count.index]}"
+    Name = "${var.vpc_name}-private-rt-shared"
   }
 }
 
-# 私有子网关联各自的私有路由表
+# 路由表关联（所有私有子网都关联到这一个路由表）
 resource "aws_route_table_association" "private" {
-  count          = length(var.azs)
+  # count 循环所有私有子网
+  count          = length(aws_subnet.private[*].id)
   subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private[count.index].id
+  # 所有子网都使用同一个路由表ID
+  route_table_id = aws_route_table.private.id
 }
