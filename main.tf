@@ -29,6 +29,15 @@ resource "aws_vpc" "development" {
   }
 }
 
+
+
+# 创建SSH密钥对
+resource "aws_key_pair" "bastion_server_key" {
+  key_name   = "basion-server-keypair"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC/h331ZWQQggV5Pp78eQ18Qi3lOytWJhuGacssp5gTCmuIzmMfIW+t0fhDjWq6uda1t7NeYTh0zu5+36vkiy5s3Gr1M764X3qGKeGFmC7qe1kyF7RtVoZ4adufBgoNxtWi9zGmSBVi3G98YLhq0Tuj0mV9FT9l1F3NBOd3YbtCSWJ3Lx3WH9hMJ7eGAsBek8hatCtlDIFMQeF/xW4WBufWYkghjJE0G/Z9q4bJewrERD4B7GlDe+GGN8wAvehKKASySWgeeIwu+w6LYR7yzi+hyCCL+jyiycJ113u0gMo/oavdlFlVUeoJhmjsL46sjpgKPr2Yb0GhEVBOCW/rBXPFq+24zx/uds1PK/HtVNanr5kQBpJ4yT57hKhKhuNXWhJwuwQpzEFkwt36RqNFC/7CpH0BiRaafHDggBSnzPsNEECHnPnfgvzfcKoxMNcbbgYwZxNFEBD2Bjd11T1iS0aIxlO7RA2IMGl0Ch03lE3ztbiafRVIw6pTy09ehi7e+NE= pengchaoma@Pengchaos-MacBook-Pro.local" # 替换为您的公钥内容
+}
+
+
 # 获取前3个可用区
 locals {
   azs = slice(data.aws_availability_zones.available.names, 0, 3)
@@ -54,11 +63,7 @@ module "development_vpc_resources" {
   azs             = local.azs
 }
 
-# 创建SSH密钥对
-resource "aws_key_pair" "bastion_server_key" {
-  key_name   = "basion-server-keypair"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC/h331ZWQQggV5Pp78eQ18Qi3lOytWJhuGacssp5gTCmuIzmMfIW+t0fhDjWq6uda1t7NeYTh0zu5+36vkiy5s3Gr1M764X3qGKeGFmC7qe1kyF7RtVoZ4adufBgoNxtWi9zGmSBVi3G98YLhq0Tuj0mV9FT9l1F3NBOd3YbtCSWJ3Lx3WH9hMJ7eGAsBek8hatCtlDIFMQeF/xW4WBufWYkghjJE0G/Z9q4bJewrERD4B7GlDe+GGN8wAvehKKASySWgeeIwu+w6LYR7yzi+hyCCL+jyiycJ113u0gMo/oavdlFlVUeoJhmjsL46sjpgKPr2Yb0GhEVBOCW/rBXPFq+24zx/uds1PK/HtVNanr5kQBpJ4yT57hKhKhuNXWhJwuwQpzEFkwt36RqNFC/7CpH0BiRaafHDggBSnzPsNEECHnPnfgvzfcKoxMNcbbgYwZxNFEBD2Bjd11T1iS0aIxlO7RA2IMGl0Ch03lE3ztbiafRVIw6pTy09ehi7e+NE= pengchaoma@Pengchaos-MacBook-Pro.local" # 替换为您的公钥内容
-}
+
   
 # 为生产环境创建堡垒机
 module "production_bastion" {
@@ -98,4 +103,44 @@ module "development_bastion" {
   volume_type      = var.bastion_config.volume_type
   hostname         = var.bastion_hostname
   region           = var.aws_region
+}
+
+# 调用安全组模块
+module "prod_bastion_security_group" {
+  source = "./modules/security-group"
+
+  name_prefix            = "prod-bastion"
+  vpc_id                 = aws_vpc.production.id
+  allowed_ssh_cidr_blocks = ["192.168.1.0/24", "10.0.0.0/16"] # 限制为内部网络
+  bastion_instance_ids   = aws_instance.bastion[*].id
+  tags = {
+    Environment = "production"
+    ManagedBy   = "terraform"
+  }
+}
+
+module "dev_bastion_security_group" {
+  source = "./modules/security-group"
+
+  name_prefix            = "dev-bastion"
+  vpc_id                 = aws_vpc.development.id
+  allowed_ssh_cidr_blocks = ["192.168.1.0/24", "10.0.0.0/16"] # 限制为内部网络
+  bastion_instance_ids   = aws_instance.bastion[*].id
+  tags = {
+    Environment = "development"
+    ManagedBy   = "terraform"
+  }
+}
+
+# 将安全组关联到实例（如果在实例创建时关联）
+resource "aws_instance" "bastion" {
+  count         = 2
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t3.micro"
+  subnet_id     = module.vpc.public_subnets[count.index % length(module.vpc.public_subnets)]
+  vpc_security_group_ids = [module.bastion_security_group.security_group_id] # 在这里关联安全组
+  
+  tags = {
+    Name = "bastion-${count.index + 1}"
+  }
 }
