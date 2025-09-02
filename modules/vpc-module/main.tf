@@ -98,3 +98,7 @@ resource "aws_route_table_association" "private" {
   # 所有子网都使用同一个路由表ID
   route_table_id = aws_route_table.private.id
 }
+
+
+
+  

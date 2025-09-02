@@ -83,6 +83,7 @@ module "production_bastion" {
   volume_type      = var.bastion_config.volume_type
   hostname         = var.bastion_hostname
   region           = var.aws_region
+
 }
 
 # 为开发环境创建堡垒机

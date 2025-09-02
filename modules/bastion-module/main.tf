@@ -29,6 +29,25 @@ resource "aws_security_group" "bastion" {
   name        = "${var.vpc_name}-bastion-sg"
   description = "Security group for Ubuntu bastion host"
   vpc_id      = var.vpc_id
+  
+
+  # 入站规则 - SSH 允许 
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # 生产环境应限制为特定IP
+  }
+
+  # 入站规则 - ICMP 允许
+  ingress {
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+
 
   # 出站规则 - 允许所有出站流量
   egress {
