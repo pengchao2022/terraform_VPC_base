@@ -4,6 +4,7 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+
 variable "environment" {
   description = "Environment tag"
   type        = string
@@ -27,7 +28,6 @@ variable "bastion_config" {
     instance_type      = "t3.micro"
     ubuntu_ami_name    = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
     ubuntu_ami_owner   = "099720109477" # Canonical的官方账户ID
-    key_name           = "my-ubuntu-key"
     allowed_cidr_blocks = ["0.0.0.0/0"] # 生产环境应该限制为特定IP
     enable_ssh         = true
     volume_size        = 20

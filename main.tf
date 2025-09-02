@@ -59,7 +59,7 @@ module "development_vpc_resources" {
 module "production_bastion" {
   count   = var.create_bastion ? 1 : 0
   source  = "./modules/bastion-module"
-
+  key_name = aws_key_pair.basion_server_key.key_name
   vpc_id           = aws_vpc.main["production"].id
   vpc_name         = "production"
   public_subnet_ids = module.vpc_resources["production"].public_subnet_ids
@@ -78,7 +78,7 @@ module "production_bastion" {
 module "development_bastion" {
   count   = var.create_bastion ? 1 : 0
   source  = "./modules/bastion-module"
-
+  key_name = aws_key_pair.basion_server_key.key_name
   vpc_id           = aws_vpc.main["development"].id
   vpc_name         = "development"
   public_subnet_ids = module.vpc_resources["development"].public_subnet_ids

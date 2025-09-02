@@ -52,6 +52,7 @@ resource "aws_instance" "bastion" {
   instance_type          = var.instance_type
   subnet_id              = var.public_subnet_ids[0] # 使用第一个公有子网
   vpc_security_group_ids = [aws_security_group.bastion.id]
+  key_name               = var.key_name
 
   # 根卷配置
   root_block_device {
@@ -104,27 +105,5 @@ resource "aws_eip" "bastion" {
     Name        = "${var.vpc_name}-bastion-eip"
     Environment = var.environment
     OS          = "Ubuntu"
-  }
-}
-
-# 创建云监控警报（可选）
-resource "aws_cloudwatch_metric_alarm" "bastion_cpu" {
-  alarm_name          = "${var.vpc_name}-bastion-cpu-utilization"
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = "2"
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/EC2"
-  period              = "300"
-  statistic           = "Average"
-  threshold           = "80"
-  alarm_description   = "CPU utilization for bastion host"
-  alarm_actions       = [] # 可以添加SNS主题等
-
-  dimensions = {
-    InstanceId = aws_instance.bastion.id
-  }
-
-  tags = {
-    Environment = var.environment
   }
 }

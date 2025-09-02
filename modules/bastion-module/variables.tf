@@ -36,22 +36,12 @@ variable "ubuntu_ami_owner" {
   default     = "099720109477" # Canonical
 }
 
-variable "key_name" {
-  description = "SSH key pair name"
-  type        = string
-}
-
 variable "allowed_cidr_blocks" {
   description = "CIDR blocks allowed to access bastion"
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
 
-variable "enable_ssh" {
-  description = "Whether to enable SSH access"
-  type        = bool
-  default     = true
-}
 
 variable "volume_size" {
   description = "Root volume size in GB"
@@ -75,4 +65,10 @@ variable "region" {
   description = "AWS region"
   type        = string
   default     = "us-east-1"
+}
+
+variable "key_name" {
+  description = "SSH key pair name"
+  type        = string
+  default     = null  # 可选：设置为可选参数
 }
