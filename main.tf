@@ -105,42 +105,4 @@ module "development_bastion" {
   region           = var.aws_region
 }
 
-# 调用安全组模块
-module "prod_bastion_security_group" {
-  source = "./modules/security-group"
 
-  name_prefix            = "prod-bastion"
-  vpc_id                 = aws_vpc.production.id
-  allowed_ssh_cidr_blocks = ["192.168.1.0/24", "10.0.0.0/16"] # 限制为内部网络
-  bastion_instance_ids   = aws_instance.bastion[*].id
-  tags = {
-    Environment = "production"
-    ManagedBy   = "terraform"
-  }
-}
-
-module "dev_bastion_security_group" {
-  source = "./modules/security-group"
-
-  name_prefix            = "dev-bastion"
-  vpc_id                 = aws_vpc.development.id
-  allowed_ssh_cidr_blocks = ["192.168.1.0/24", "10.0.0.0/16"] # 限制为内部网络
-  bastion_instance_ids   = aws_instance.bastion[*].id
-  tags = {
-    Environment = "development"
-    ManagedBy   = "terraform"
-  }
-}
-
-# 将安全组关联到实例（如果在实例创建时关联）
-resource "aws_instance" "bastion" {
-  count         = 2
-  ami           = "ami-0c55b159cbfafe1f0"
-  instance_type = "t3.micro"
-  subnet_id     = module.vpc.public_subnets[count.index % length(module.vpc.public_subnets)]
-  vpc_security_group_ids = [module.bastion_security_group.security_group_id] # 在这里关联安全组
-  
-  tags = {
-    Name = "bastion-${count.index + 1}"
-  }
-}
