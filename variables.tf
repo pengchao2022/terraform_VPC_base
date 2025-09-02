@@ -23,6 +23,7 @@ variable "bastion_config" {
     enable_ssh           = bool
     volume_size          = number
     volume_type          = string
+    key_name             = string  # 这是必需的属性
   })
   default = {
     instance_type      = "t3.micro"
@@ -32,6 +33,7 @@ variable "bastion_config" {
     enable_ssh         = true
     volume_size        = 20
     volume_type        = "gp3"
+    key_name            = "basion-ubuntu-key"  # 添加必需的 key_name
   }
 }
 
