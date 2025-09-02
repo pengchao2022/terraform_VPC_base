@@ -78,7 +78,7 @@ resource "aws_route_table_association" "public" {
 # 私有路由表（单个）
 resource "aws_route_table" "private" {
   # 移除了 count，只创建一个路由表
-  vpc_id = aws_vpc.main.id
+  vpc_id = aws_vpc.this.id
 
   route {
     cidr_block     = "0.0.0.0/0"
